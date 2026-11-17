@@ -1,0 +1,38 @@
+{
+  "name": "centinela-ai",
+  "version": "0.1.0",
+  "description": "Guardrails de seguridad para agentes de código (Claude Code, Cursor, cualquier cliente MCP): frena paquetes alucinados (slopsquatting), lectura de secrets, comandos destructivos y keys hardcodeadas.",
+  "type": "module",
+  "bin": {
+    "centinela": "bin/centinela.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "hooks",
+    "skills",
+    ".claude-plugin",
+    ".mcp.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "demo": "node demo/run-demo.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "claude-code",
+    "cursor",
+    "mcp",
+    "security",
+    "slopsquatting",
+    "supply-chain",
+    "secrets",
+    "guardrails",
+    "ai-agents"
+  ],
+  "license": "MIT"
+}

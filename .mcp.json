@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "centinela": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/bin/centinela.js", "mcp"]
+    }
+  }
+}

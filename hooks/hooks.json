@@ -1,0 +1,13 @@
+{
+  "description": "Centinela: revisa cada comando, lectura y escritura del agente antes de que ocurra.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read|Grep|Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/bin/centinela.js\" hook", "timeout": 25 }
+        ]
+      }
+    ]
+  }
+}

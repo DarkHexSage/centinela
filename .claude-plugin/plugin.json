@@ -1,0 +1,8 @@
+{
+  "name": "centinela",
+  "version": "0.1.0",
+  "description": "Guardrails de seguridad para Claude Code: frena paquetes alucinados (slopsquatting) y typosquatting, lectura y exfiltración de secrets, comandos destructivos y keys hardcodeadas.",
+  "author": { "name": "SecureDev" },
+  "license": "MIT",
+  "keywords": ["security", "slopsquatting", "supply-chain", "secrets", "guardrails"]
+}

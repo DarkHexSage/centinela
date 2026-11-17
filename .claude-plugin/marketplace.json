@@ -1,0 +1,11 @@
+{
+  "name": "centinela",
+  "owner": { "name": "SecureDev" },
+  "plugins": [
+    {
+      "name": "centinela",
+      "source": "./",
+      "description": "Guardrails de seguridad para agentes de código: paquetes alucinados, secrets y comandos destructivos."
+    }
+  ]
+}

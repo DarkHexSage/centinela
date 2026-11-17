@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centinela — guardrails de seguridad para agentes de código</title>
+<meta name="description" content="Frená paquetes alucinados, fugas de secrets y comandos destructivos antes de que tu agente de AI los ejecute. Para Claude Code, Cursor y cualquier cliente MCP.">
+<style>
+  :root { --bg:#0b0d10; --panel:#12161b; --line:#232a33; --text:#e7ecf2; --muted:#8b97a6; --accent:#3ddc97; --red:#ff5d5d; --amber:#ffc048; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .wrap { max-width:1040px; margin:0 auto; padding:0 24px; }
+  nav { display:flex; justify-content:space-between; align-items:center; padding:22px 0; }
+  .logo { font-weight:700; letter-spacing:.3px; }
+  nav a { color:var(--muted); text-decoration:none; margin-left:22px; font-size:14px; }
+  nav a:hover { color:var(--text); }
+  header { padding:72px 0 48px; display:grid; grid-template-columns:1.05fr 1fr; gap:48px; align-items:center; }
+  h1 { font-size:46px; line-height:1.1; letter-spacing:-1px; }
+  h1 em { font-style:normal; color:var(--accent); }
+  .lead { color:var(--muted); font-size:18px; margin:20px 0 28px; }
+  .cta { display:flex; gap:12px; flex-wrap:wrap; }
+  .btn { padding:12px 18px; border-radius:10px; text-decoration:none; font-weight:600; font-size:15px; }
+  .btn.primary { background:var(--accent); color:#06281a; }
+  .btn.ghost { border:1px solid var(--line); color:var(--text); }
+  .term { background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace; box-shadow:0 30px 80px rgba(0,0,0,.45); }
+  .term .bar { display:flex; gap:6px; padding:12px 14px; border-bottom:1px solid var(--line); }
+  .term .bar i { width:11px; height:11px; border-radius:50%; background:#2b333d; display:block; }
+  .term pre { padding:16px 18px; white-space:pre-wrap; min-height:330px; }
+  .c-agent { color:#7cc7ff; } .c-dim { color:var(--muted); } .c-deny { color:var(--red); font-weight:700; } .c-ok { color:var(--accent); font-weight:700; }
+  section { padding:56px 0; border-top:1px solid var(--line); }
+  h2 { font-size:28px; letter-spacing:-.4px; margin-bottom:10px; }
+  .sub { color:var(--muted); margin-bottom:28px; max-width:680px; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .card h3 { font-size:16px; margin-bottom:6px; }
+  .card p { color:var(--muted); font-size:14px; }
+  .card code { color:var(--text); background:#1b2129; padding:1px 6px; border-radius:5px; font-size:12.5px; }
+  .install { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .install pre { background:#0e1116; border:1px solid var(--line); border-radius:10px; padding:14px; font:13px/1.6 ui-monospace,Menlo,monospace; overflow-x:auto; margin-top:10px; color:#cfe8dc; }
+  .pricing { display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:760px; }
+  .price { font-size:32px; font-weight:700; margin:6px 0 10px; }
+  .price small { font-size:14px; color:var(--muted); font-weight:400; }
+  ul.check { list-style:none; } ul.check li { padding:4px 0 4px 22px; position:relative; color:var(--muted); font-size:14px; }
+  ul.check li:before { content:"✓"; position:absolute; left:0; color:var(--accent); }
+  .badge { display:inline-block; font-size:12px; color:var(--accent); border:1px solid #1f5a42; background:#0f2a1f; padding:3px 10px; border-radius:99px; margin-bottom:18px; }
+  footer { padding:36px 0 60px; color:var(--muted); font-size:14px; border-top:1px solid var(--line); }
+  @media (max-width:860px){ header{grid-template-columns:1fr;} .grid,.install,.pricing{grid-template-columns:1fr;} h1{font-size:36px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="logo">🛡️ Centinela</div>
+    <div><a href="#que">Qué frena</a><a href="#instalar">Instalar</a><a href="#precio">Precio</a></div>
+  </nav>
+
+  <header>
+    <div>
+      <span class="badge">Claude Code · Cursor · MCP · 100% local</span>
+      <h1>Tu agente de AI escribe rápido.<br><em>Centinela revisa antes de que ejecute.</em></h1>
+      <p class="lead">Frena paquetes alucinados, fugas de API keys y comandos destructivos antes de que pasen. Se instala con un comando y no manda tu código a ningún lado.</p>
+      <div class="cta">
+        <a class="btn primary" href="#instalar">Instalar gratis</a>
+        <a class="btn ghost" href="#que">Ver qué frena</a>
+      </div>
+    </div>
+    <div class="term"><div class="bar"><i></i><i></i><i></i></div><pre id="t"></pre></div>
+  </header>
+
+  <section id="que">
+    <h2>Lo que un agente puede hacer sin que te des cuenta</h2>
+    <p class="sub">Los modelos inventan nombres de paquetes, leen tu <code>.env</code> para "entender la configuración" y pegan keys en el código. Centinela lo frena en el momento y le explica al agente qué hacer en su lugar.</p>
+    <div class="grid">
+      <div class="card"><h3>📦 Paquetes alucinados</h3><p>Si la AI inventa <code>supabase-auth-pro</code> y un atacante lo registra, instalarlo corre su código. Centinela verifica en npm y PyPI antes de instalar.</p></div>
+      <div class="card"><h3>🎭 Typosquatting</h3><p><code>lodahs</code>, <code>reqeusts</code>, <code>expresss</code>. Detecta nombres casi iguales a paquetes populares y los que npm retiró por maliciosos.</p></div>
+      <div class="card"><h3>🔑 Lectura de secrets</h3><p>Bloquea <code>cat .env</code>, llaves SSH y credenciales de nube para que tus keys no terminen en el contexto del modelo.</p></div>
+      <div class="card"><h3>📤 Exfiltración</h3><p>Comandos que combinan secrets y red, como <code>curl -d @.env</code> o <code>printenv | curl</code>.</p></div>
+      <div class="card"><h3>🧾 Keys hardcodeadas</h3><p>Stripe live, OpenAI, Anthropic, AWS, GitHub, URLs de base de datos, el JWT <code>service_role</code> de Supabase y variables <code>NEXT_PUBLIC_*SECRET</code>.</p></div>
+      <div class="card"><h3>💥 Comandos destructivos</h3><p><code>rm -rf ~</code>, <code>git push --force</code> a main, <code>DROP TABLE</code>, <code>terraform destroy</code>, <code>curl | sh</code>.</p></div>
+    </div>
+  </section>
+
+  <section id="instalar">
+    <h2>Instalalo en 30 segundos</h2>
+    <p class="sub">Sin dependencias. Funciona apenas lo instalás.</p>
+    <div class="install">
+      <div class="card"><h3>Claude Code</h3><p>Plugin completo: hooks, MCP y skill de auditoría.</p><pre>/plugin marketplace add securedev/centinela
+/plugin install centinela@centinela</pre></div>
+      <div class="card"><h3>Cursor</h3><p>Hooks de shell y lectura, más el MCP.</p><pre>npm i -g centinela-ai
+centinela init cursor</pre></div>
+      <div class="card"><h3>CI / cualquier MCP</h3><p>Falla el pipeline si hay secrets o dependencias sospechosas.</p><pre>npx -y centinela-ai scan .</pre></div>
+    </div>
+  </section>
+
+  <section id="precio">
+    <h2>Precio</h2>
+    <p class="sub">El guardrail local es gratis para siempre. Pro es para equipos que necesitan políticas compartidas.</p>
+    <div class="pricing">
+      <div class="card"><h3>Gratis</h3><div class="price">$0</div><ul class="check"><li>Hooks para Claude Code y Cursor</li><li>Servidor MCP y CLI</li><li>Detección de paquetes, secrets y comandos</li><li>Escaneo en CI</li></ul></div>
+      <div class="card"><h3>Pro</h3><div class="price">$9 <small>/ dev / mes</small></div><ul class="check"><li>Políticas de equipo centralizadas</li><li>Feed comunitario de paquetes maliciosos</li><li>Reporte semanal de bloqueos</li><li>Reglas personalizadas por repo</li></ul></div>
+    </div>
+  </section>
+
+  <footer>🛡️ Centinela · hecho en Costa Rica por SecureDev · MIT</footer>
+</div>
+<script>
+const lines = [
+  ['c-agent','🤖 Instalo el helper de auth para Supabase…'],
+  ['c-dim','$ npm install supabase-auth-helpers-nextjs-pro'],
+  ['c-deny','✖ BLOQUEADO — el paquete no existe en npm (nombre alucinado)'],
+  ['',''],
+  ['c-agent','🤖 Reviso las variables de entorno…'],
+  ['c-dim','Leer .env.local'],
+  ['c-deny','✖ BLOQUEADO — tus secrets entrarían al contexto del modelo'],
+  ['',''],
+  ['c-agent','🤖 Creo el cliente admin de Supabase…'],
+  ['c-dim','Escribir src/lib/supabase.ts'],
+  ['c-deny','✖ BLOQUEADO — JWT service_role hardcodeado'],
+  ['',''],
+  ['c-agent','🤖 Instalo zod para validar formularios…'],
+  ['c-dim','$ npm install zod'],
+  ['c-ok','✔ PERMITIDO']
+];
+const t = document.getElementById('t');
+let i = 0;
+function step(){
+  if (i >= lines.length) { setTimeout(()=>{ t.innerHTML=''; i=0; step(); }, 3500); return; }
+  const [cls, txt] = lines[i++];
+  const s = document.createElement('div'); s.className = cls; s.textContent = txt || ' ';
+  t.appendChild(s);
+  setTimeout(step, cls === 'c-agent' ? 650 : cls === 'c-dim' ? 500 : 250);
+}
+step();
+</script>
+</body>
+</html>
