@@ -1,7 +1,45 @@
 import path from 'node:path';
 import os from 'node:os';
 import { splitSegments, tokenize, stripPrefixes } from '../shell.js';
+import fs from 'node:fs';
 import { isSecretFile } from './secrets.js';
+// Nombres típicos de archivos con secrets, para evaluar comodines como ".env*" o "*.pem".
+const SECRET_SAMPLES = ['.env', '.env.local', '.env.production', '.env.development.local', 'id_rsa', 'id_ed25519', 'key.pem', 'server.key', 'credentials.json', 'service-account.json', '.npmrc', 'secrets.json'];
+
+function globToRegex(glob) {
+  const esc = glob.replace(/[.+^${}()|\\]/g, '\\$&').replace(/\*/g, '[^/]*').replace(/\?/g, '[^/]').replace(/\[!/g, '[^');
+  return new RegExp('^' + esc + '$');
+}
+
+/** ¿El argumento es (o puede expandirse a) un archivo con secrets? Cubre comodines: ".env*", "*.pem", ".env.{local,prod}". */
+function touchesSecretFile(arg, cwd) {
+  const a = arg.replace(/^@/, '');
+  if (isSecretFile(a)) return true;
+  if (!/[*?[{]/.test(a)) return false;
+  const base = path.basename(a);
+  // Llaves: .env.{local,production} → probamos cada opción
+  const brace = base.match(/^(.*)\{([^}]*)\}(.*)$/);
+  if (brace) return brace[2].split(',').some((opt) => touchesSecretFile(path.join(path.dirname(a), brace[1] + opt + brace[3]), cwd));
+  let re;
+  try {
+    re = globToRegex(base);
+  } catch {
+    return false;
+  }
+  // Como en la shell: un comodín que no empieza con "." no expande a archivos ocultos.
+  const matches = (n) => re.test(n) && (base.startsWith('.') || !n.startsWith('.'));
+  // Solo usamos los nombres de ejemplo si el comodín tiene una parte fija ("*.pem", ".env*"), no para "*" a secas.
+  const literal = base.replace(/\[[^\]]*\]|[*?]/g, '');
+  if (literal.length >= 2 && SECRET_SAMPLES.some(matches)) return true;
+  // Archivos reales en esa carpeta que coincidan con el comodín
+  try {
+    const dir = path.resolve(cwd || process.cwd(), path.dirname(a));
+    return fs.readdirSync(dir).some((n) => matches(n) && isSecretFile(path.join(dir, n)));
+  } catch {
+    return false;
+  }
+}
+
 
 // Reglas para comandos de shell. Cada regla devuelve { decision, reason } o null.
 
@@ -42,7 +80,7 @@ export function assessCommand(command, { cwd, config } = {}) {
   }
 
   // --- Exfiltración de secrets: leer un archivo sensible + red en el mismo comando ---
-  const mentionsSecretFile = tokenize(command).some((t) => isSecretFile(t.replace(/^@/, '')) || /\$\(cat\s+[^)]*\.env/.test(t));
+  const mentionsSecretFile = tokenize(command).some((t) => touchesSecretFile(t, cwd) || /\$\(cat\s+[^)]*\.env/.test(t));
   if (mentionsSecretFile && NETWORK.test(command)) {
     add('deny', 'Posible exfiltración: el comando toca un archivo con secrets y además usa la red.');
   }
@@ -58,7 +96,7 @@ export function assessCommand(command, { cwd, config } = {}) {
 
     // --- Lectura de archivos de secrets ---
     if (READERS.has(base)) {
-      const target = args.find((a) => !a.startsWith('-') && isSecretFile(a));
+      const target = args.find((a) => !a.startsWith('-') && touchesSecretFile(a, cwd));
       if (target && !(config?.allowReadPaths || []).some((p) => target.includes(p))) {
         add('deny', `Intenta leer "${target}", que contiene secrets. Si el agente necesita saber qué variables existen, que lea el .env.example.`);
       }
@@ -99,7 +137,7 @@ export function assessCommand(command, { cwd, config } = {}) {
       if (sub === 'checkout' && rest.includes('--') && rest.includes('.')) add('ask', 'git checkout -- . descarta todos los cambios locales.');
       if (sub === 'restore' && rest.includes('.') && !rest.includes('--staged')) add('ask', 'git restore . descarta todos los cambios locales.');
       if (sub === 'filter-branch' || (sub === 'filter-repo')) add('ask', 'Reescritura masiva del historial de git.');
-      if (sub === 'add' && rest.some((a) => isSecretFile(a))) add('deny', 'Agregaría un archivo con secrets al repositorio.');
+      if (sub === 'add' && rest.some((a) => touchesSecretFile(a, cwd))) add('deny', 'Agregaría un archivo con secrets al repositorio.');
       if (sub === 'config' && rest.some((a) => /credential\.helper/.test(a))) add('ask', 'Cambia cómo git guarda tus credenciales.');
     }
 
