@@ -102,10 +102,13 @@ Todo acepta `--json`.
 ## Demo
 
 ```bash
-node demo/run-demo.js                 # simula un agente intentando 9 acciones peligrosas
-node demo/crear-app-vulnerable.js     # genera una app con errores de seguridad típicos
-node bin/centinela.js scan demo/app-vulnerable
+npm run demo           # simula un agente intentando 9 acciones peligrosas
+npm run demo:checks    # cada regla, una por una, con PASS/FAIL (--grabar agrega pausas)
+npm run demo:hook      # simula lo que Claude Code le manda al hook
+npm run demo:setup     # crea ~/centinela-demo: una app con errores típicos, lista para Claude Code
 ```
+
+Guía completa para probar y grabar el video: [DEMO.md](DEMO.md).
 
 ## Cómo funciona
 

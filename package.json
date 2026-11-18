@@ -12,13 +12,16 @@
     "hooks",
     "skills",
     ".claude-plugin",
-    ".mcp.json",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "DEMO.md"
   ],
   "scripts": {
     "test": "node --test test/*.test.js",
-    "demo": "node demo/run-demo.js"
+    "demo": "node demo/run-demo.js",
+    "demo:checks": "bash demo/checks.sh",
+    "demo:hook": "bash demo/hook-test.sh",
+    "demo:setup": "bash demo/setup-demo.sh"
   },
   "engines": {
     "node": ">=18"

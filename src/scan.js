@@ -81,7 +81,7 @@ export async function scanProject(root, { checkDeps = true } = {}) {
     if (stat.size > MAX_FILE) continue;
     const text = fs.readFileSync(file, 'utf8');
     for (const f of scanText(text)) {
-      findings.push({ type: 'secret', severity: f.severity, file: rel, line: f.line, message: `${f.label} (${f.preview})` });
+      findings.push({ type: 'secret', severity: f.severity, file: rel, line: f.line, message: f.id === 'client-exposed-secret' ? f.label : `${f.label} (${f.preview})` });
     }
   }
 

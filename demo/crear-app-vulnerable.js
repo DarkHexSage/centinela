@@ -1,12 +1,15 @@
 #!/usr/bin/env node
-// Crea demo/app-vulnerable: una app con errores de seguridad típicos para mostrar `centinela scan`.
+// Crea una app con errores de seguridad típicos para mostrar `centinela scan`.
+// Uso: node demo/crear-app-vulnerable.js [carpeta-destino]   (por defecto: demo/app-vulnerable)
 // Se genera en el momento (y está en .gitignore) para que el repo no contenga keys falsas
 // que GitHub bloquearía con push protection.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), 'app-vulnerable');
+const root = process.argv[2]
+  ? path.resolve(process.argv[2])
+  : path.join(path.dirname(fileURLToPath(import.meta.url)), 'app-vulnerable');
 const j = (...p) => p.join('');
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const serviceRole = `${j('ey', 'JhbGciOiJIUzI1NiJ9')}.${b64({ iss: 'supabase', ref: 'demo', role: 'service_role' })}.dEmOfIrMaNoReAlXyZ123456`;
@@ -39,4 +42,4 @@ for (const [rel, content] of Object.entries(files)) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, content);
 }
-console.log(`Listo: ${root}\nAhora corré: node bin/centinela.js scan demo/app-vulnerable`);
+console.log(`Listo: ${root}\nAhora corré: node bin/centinela.js scan ${root}`);

@@ -3,6 +3,7 @@
 // Uso: node demo/run-demo.js   (agregá --fast para no hacer pausas)
 import { evaluate } from '../src/engine.js';
 import { DEFAULT_CONFIG } from '../src/config.js';
+import { sym } from '../src/symbols.js';
 
 const fast = process.argv.includes('--fast');
 const sleep = (ms) => new Promise((r) => setTimeout(r, fast ? 0 : ms));
@@ -26,18 +27,18 @@ const steps = [
 
 const color = { deny: '\x1b[41m\x1b[97m BLOQUEADO \x1b[0m', ask: '\x1b[43m\x1b[30m CONFIRMAR \x1b[0m', allow: '\x1b[42m\x1b[30m PERMITIDO \x1b[0m' };
 
-console.log('\n\x1b[1m🛡️  Centinela — demo en vivo\x1b[0m\n\x1b[2mUn agente de código trabajando en una app Next.js + Supabase…\x1b[0m\n');
+console.log(`\n\x1b[1m${sym.shield}  Centinela — demo en vivo\x1b[0m\n\x1b[2mUn agente de código trabajando en una app Next.js + Supabase${sym.ellipsis}\x1b[0m\n`);
 const tally = { deny: 0, ask: 0, allow: 0 };
 for (const s of steps) {
   await sleep(700);
-  console.log(`\x1b[36m🤖 ${s.says}\x1b[0m`);
+  console.log(`\x1b[36m${sym.agent} ${s.says.replace('…', sym.ellipsis)}\x1b[0m`);
   const target = s.action.command ? `$ ${s.action.command}` : `${s.action.kind === 'read' ? 'Leer' : 'Escribir'} ${s.action.filePath}`;
   console.log(`   \x1b[2m${target}\x1b[0m`);
   const r = await evaluate({ ...s.action, cwd: process.cwd() }, DEFAULT_CONFIG);
   tally[r.decision]++;
   await sleep(400);
   console.log(`   ${color[r.decision]}`);
-  for (const reason of r.reasons) console.log(`   • ${reason}`);
+  for (const reason of r.reasons) console.log(`   ${sym.bullet} ${reason}`);
   console.log();
 }
 console.log(`\x1b[1mResultado:\x1b[0m ${tally.deny} bloqueadas · ${tally.ask} para confirmar · ${tally.allow} permitidas\n`);

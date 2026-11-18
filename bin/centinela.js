@@ -9,6 +9,7 @@ import { evaluate } from '../src/engine.js';
 import { assessPackage } from '../src/rules/packages.js';
 import { loadConfig, DEFAULT_CONFIG } from '../src/config.js';
 import { readLog } from '../src/log.js';
+import { sym, ASCII } from '../src/symbols.js';
 
 const BIN = fileURLToPath(import.meta.url);
 const [, , cmd, ...args] = process.argv;
@@ -22,10 +23,12 @@ const c = {
   dim: (s) => `\x1b[2m${s}\x1b[0m`,
   bold: (s) => `\x1b[1m${s}\x1b[0m`
 };
-const icon = { deny: c.red('✖ BLOQUEADO'), ask: c.yellow('▲ REVISAR'), allow: c.green('✔ OK') };
+const icon = ASCII
+  ? { deny: c.red('[BLOQUEADO]'), ask: c.yellow('[REVISAR]'), allow: c.green('[OK]') }
+  : { deny: c.red(`${sym.deny} BLOQUEADO`), ask: c.yellow(`${sym.ask} REVISAR`), allow: c.green(`${sym.ok} OK`) };
 
 const HELP = `
-${c.bold('🛡️  Centinela')} — guardrails de seguridad para agentes de código
+${c.bold(`${sym.shield}  Centinela`)} — guardrails de seguridad para agentes de código
 
 Uso:
   centinela scan [ruta]              Audita un proyecto (secrets, .env, dependencias). Sale con código 1 si hay hallazgos graves (ideal para CI).
@@ -43,7 +46,7 @@ Opciones: --json
 
 function printDecision(r) {
   console.log(`${icon[r.decision]}`);
-  for (const reason of r.reasons) console.log(`  • ${reason}`);
+  for (const reason of r.reasons) console.log(`  ${sym.bullet} ${reason}`);
 }
 
 function mergeJson(file, mutate) {
@@ -65,12 +68,12 @@ async function main() {
 
     case 'scan': {
       const root = positional[0] || '.';
-      if (!json) console.log(c.dim(`Escaneando ${path.resolve(root)} …`));
+      if (!json) console.log(c.dim(`Escaneando ${path.resolve(root)} ${sym.ellipsis}`));
       const r = await scanProject(root, { checkDeps: !args.includes('--no-deps') });
       if (json) {
         console.log(JSON.stringify(r, null, 2));
       } else {
-        if (!r.findings.length) console.log(c.green(`\n✔ Sin hallazgos. Revisé ${r.summary.dependenciesChecked} dependencias.`));
+        if (!r.findings.length) console.log(c.green(`\n${sym.ok} Sin hallazgos. Revisé ${r.summary.dependenciesChecked} dependencias.`));
         for (const f of r.findings) {
           const sev = f.severity === 'high' ? c.red('ALTO ') : c.yellow('MEDIO');
           console.log(`${sev}  ${f.file}${f.line ? ':' + f.line : ''}\n       ${f.message}`);
@@ -107,7 +110,7 @@ async function main() {
       if (!entries.length) return console.log('Sin registros todavía.');
       for (const e of entries) {
         console.log(`${c.dim(e.ts)} ${icon[e.decision] || e.decision} ${c.dim(e.host || '')}\n  ${e.target || ''}`);
-        for (const r of e.reasons || []) console.log(`  • ${r}`);
+        for (const r of e.reasons || []) console.log(`  ${sym.bullet} ${r}`);
       }
       return;
     }
@@ -128,7 +131,7 @@ async function main() {
           d.mcpServers = d.mcpServers || {};
           d.mcpServers.centinela = { command: 'node', args: [BIN, 'mcp'] };
         });
-        return console.log(c.green('✔ Centinela instalado en Cursor (.cursor/hooks.json y .cursor/mcp.json). Recargá la ventana.'));
+        return console.log(c.green(`${sym.ok} Centinela instalado en Cursor (.cursor/hooks.json y .cursor/mcp.json). Recargá la ventana.`));
       }
       if (target === 'claude') {
         mergeJson(path.join(process.cwd(), '.claude', 'settings.json'), (d) => {
@@ -139,12 +142,12 @@ async function main() {
             hooks: [{ type: 'command', command: hookCmd, timeout: 25 }]
           });
         });
-        return console.log(c.green('✔ Hook de Centinela agregado a .claude/settings.json. Para la versión completa (hooks + MCP + skill) instalá el plugin: /plugin install centinela'));
+        return console.log(c.green(`${sym.ok} Hook de Centinela agregado a .claude/settings.json. Para la versión completa (hooks + MCP + skill) instalá el plugin: /plugin install centinela`));
       }
       const file = path.join(process.cwd(), '.centinela.json');
       if (fs.existsSync(file)) return console.log('.centinela.json ya existe.');
       fs.writeFileSync(file, JSON.stringify(DEFAULT_CONFIG, null, 2) + '\n');
-      return console.log(c.green('✔ Creado .centinela.json'));
+      return console.log(c.green(`${sym.ok} Creado .centinela.json`));
     }
 
     default:

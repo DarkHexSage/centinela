@@ -1,6 +1,7 @@
 import { evaluate, actionFromClaudeCode, actionFromCursor } from './engine.js';
 import { loadConfig } from './config.js';
 import { logDecision } from './log.js';
+import { sym } from './symbols.js';
 
 const CURSOR_EVENTS = new Set(['beforeShellExecution', 'beforeReadFile', 'preToolUse']);
 
@@ -14,8 +15,8 @@ function readStdin() {
 }
 
 function formatReason(decision, reasons) {
-  const title = decision === 'deny' ? '🛡️ Centinela bloqueó esta acción:' : '🛡️ Centinela pide confirmación:';
-  return [title, ...reasons.map((r) => `• ${r}`)].join('\n');
+  const title = decision === 'deny' ? `${sym.shield} Centinela bloqueó esta acción:`.trim() : `${sym.shield} Centinela pide confirmación:`.trim();
+  return [title, ...reasons.map((r) => `${sym.bullet} ${r}`)].join('\n');
 }
 
 /**
