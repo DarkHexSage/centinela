@@ -9,6 +9,49 @@ import { lookupPackage } from '../registry.js';
 const NPM_FLAGS_WITH_VALUE = new Set(['--registry', '--prefix', '-w', '--workspace', '--filter', '--tag', '--cwd']);
 const PIP_FLAGS_WITH_VALUE = new Set(['-i', '--index-url', '--extra-index-url', '-c', '--constraint', '-t', '--target', '--python', '-p', '--group', '--source']);
 
+// Comandos conocidos cuyo paquete tiene otro nombre (npx <comando> → paquete real).
+const KNOWN_BINS = {
+  tsc: 'typescript',
+  tsserver: 'typescript',
+  'ts-node': 'ts-node',
+  next: 'next',
+  vite: 'vite',
+  jest: 'jest',
+  vitest: 'vitest',
+  eslint: 'eslint',
+  prettier: 'prettier',
+  prisma: 'prisma',
+  'drizzle-kit': 'drizzle-kit',
+  tailwindcss: 'tailwindcss',
+  playwright: '@playwright/test',
+  supabase: 'supabase',
+  wrangler: 'wrangler',
+  vercel: 'vercel',
+  nodemon: 'nodemon',
+  rimraf: 'rimraf',
+  'cross-env': 'cross-env',
+  concurrently: 'concurrently',
+  turbo: 'turbo',
+  nx: 'nx',
+  husky: 'husky',
+  'lint-staged': 'lint-staged',
+  'create-next-app': 'create-next-app',
+  'create-vite': 'create-vite',
+  shadcn: 'shadcn'
+};
+
+/** ¿El comando ya está instalado en el proyecto (node_modules/.bin, subiendo carpetas)? */
+function hasLocalBin(bin, cwd) {
+  let dir = path.resolve(cwd || process.cwd());
+  for (let i = 0; i < 8; i++) {
+    if (fs.existsSync(path.join(dir, 'node_modules', '.bin', bin))) return true;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return false;
+}
+
 /** Convierte "foo@^1.2.0" o "@scope/foo@latest" en el nombre limpio. */
 export function npmName(spec) {
   if (/^(https?:|git(\+|:)|file:|github:|link:|workspace:|\.|\/|~)/.test(spec)) return null;
@@ -76,7 +119,14 @@ export function extractPackages(command, cwd) {
       // npx ejecuta el paquete directamente: si no existe y alguien lo registra, corre su código.
       const args = cmd === 'npx' || cmd === 'bunx' ? [sub, ...rest] : rest;
       const pkgFlag = args.findIndex((a) => a === '-p' || a === '--package');
-      const spec = pkgFlag >= 0 ? args[pkgFlag + 1] : args.find((a) => !a.startsWith('-'));
+      let spec = pkgFlag >= 0 ? args[pkgFlag + 1] : args.find((a) => !a.startsWith('-'));
+      if (spec && pkgFlag < 0) {
+        // `npx tsc` corre el comando "tsc" que ya está instalado en el proyecto (de "typescript"),
+        // no el paquete de npm llamado "tsc". Solo verificamos lo que npx descargaría.
+        const bin = npmName(spec);
+        if (bin && hasLocalBin(bin, cwd)) spec = null;
+        else if (bin && KNOWN_BINS[bin]) spec = KNOWN_BINS[bin];
+      }
       if (spec) push(npmName(spec), 'npm', cmd === 'npm' ? 'npm exec' : cmd);
     }
 

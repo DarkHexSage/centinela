@@ -7,9 +7,9 @@ import { assessPackage } from './rules/packages.js';
 import { scanText } from './rules/secrets.js';
 import { scanProject } from './scan.js';
 import { loadConfig } from './config.js';
-import { readLog } from './log.js';
+import { readLog, logDecision } from './log.js';
 
-const VERSION = '0.1.0';
+const VERSION = '0.1.1';
 
 const TOOLS = [
   {
@@ -66,6 +66,9 @@ async function callTool(name, args = {}) {
     case 'check_package': {
       const ecosystem = args.ecosystem === 'pypi' ? 'pypi' : 'npm';
       const r = await assessPackage({ name: args.name, ecosystem }, loadConfig());
+      if (r.decision !== 'allow') {
+        logDecision({ host: 'mcp', kind: 'package', target: `${ecosystem}: ${args.name}`, decision: r.decision, reasons: r.reasons });
+      }
       return { verdict: r.decision === 'allow' ? 'seguro' : r.decision === 'ask' ? 'revisar' : 'peligroso', ...r };
     }
     case 'check_command': {

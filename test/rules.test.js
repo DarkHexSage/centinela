@@ -148,3 +148,12 @@ test('comodines que leen archivos con secrets', async () => {
   assert.equal(d('ls .env*'), 'allow'); // listar no es leer
   fs.rmSync(dir, { recursive: true });
 });
+
+test('npx: comandos locales y conocidos no se confunden con paquetes', () => {
+  const names = (c) => extractPackages(c, '/tmp').map((p) => p.name);
+  assert.deepEqual(names('npx tsc --noEmit'), ['typescript']);
+  assert.deepEqual(names('npx next build'), ['next']);
+  assert.deepEqual(names('npx create-next-app@latest mi-app'), ['create-next-app']);
+  assert.deepEqual(names('npx -p typescript tsc'), ['typescript']);
+  assert.deepEqual(names('npx supabase-auth-helpers-pro'), ['supabase-auth-helpers-pro']);
+});

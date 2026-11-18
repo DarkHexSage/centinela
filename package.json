@@ -1,6 +1,6 @@
 {
   "name": "centinela-ai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Guardrails de seguridad para agentes de código (Claude Code, Cursor, cualquier cliente MCP): frena paquetes alucinados (slopsquatting), lectura de secrets, comandos destructivos y keys hardcodeadas.",
   "type": "module",
   "bin": {
