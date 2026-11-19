@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="landing/centinela-logo-dark.svg" width="96" alt="Centinela">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="landing/centinela-logo-dark.svg">
+    <img src="landing/centinela-logo-light.svg" width="96" alt="">
+  </picture>
 </p>
 
 <h1 align="center">Centinela</h1>
@@ -11,6 +14,7 @@
 </p>
 
 <p align="center">
+  <a href="https://youtu.be/3oeUttP-39k"><img alt="demo" src="https://img.shields.io/badge/demo-video-c4302b?logo=youtube&logoColor=white"></a>
   <img alt="tests" src="https://img.shields.io/badge/tests-15%20passing-3ddc97">
   <img alt="dependencias" src="https://img.shields.io/badge/dependencias-0-3ddc97">
   <img alt="node" src="https://img.shields.io/badge/node-%E2%89%A518-0e1726">
@@ -55,7 +59,9 @@ $ centinela check supabase-auth-helpers-pro
     instalarlo ejecutaría su código.
 ```
 
-🎬 **Video del demo:** [TU-ENLACE-AL-VIDEO]
+### 🎬 Demo en video
+
+[![Demo de Centinela: un agente de AI intenta instalar un paquete inventado y leer secrets, y Centinela lo frena](https://img.youtube.com/vi/3oeUttP-39k/maxresdefault.jpg)](https://youtu.be/3oeUttP-39k)
 
 ## Inicio rápido (Claude Code)
 
